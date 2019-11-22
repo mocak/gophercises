@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"sync"
 	"time"
 )
@@ -18,10 +19,10 @@ func main() {
 	flag.Parse()
 
 	file, err := os.Open(*fileName)
-
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer file.Close()
 
 	r := csv.NewReader(file)
 	records, err := r.ReadAll()
@@ -45,7 +46,7 @@ func main() {
 			fmt.Printf("Problem #%d: %s = ", i+1, line[0])
 			fmt.Scan(&input)
 
-			if input == line[1] {
+			if strings.TrimSpace(input) == line[1] {
 				score++
 			}
 		}
