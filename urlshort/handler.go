@@ -2,6 +2,7 @@ package urlshort
 
 import (
 	"encoding/json"
+	"github.com/boltdb/bolt"
 	"gopkg.in/yaml.v2"
 	"net/http"
 )
@@ -87,4 +88,22 @@ func parseJSON(jsonData []byte) ([]pathUrl, error) {
 	var pathUrls []pathUrl
 
 	return pathUrls, json.Unmarshal(jsonData, &pathUrls)
+}
+
+func DBHandler(db *bolt.DB, fallback http.Handler) (http.HandlerFunc, error) {
+
+	urls := make(map[string]string)
+
+	if err := db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("urls"))
+		b.ForEach(func(k, v []byte) error {
+			urls[string(k)] = string(v)
+			return nil
+		})
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	return MapHandler(urls, fallback), nil
 }
